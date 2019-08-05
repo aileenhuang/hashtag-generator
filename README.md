@@ -1,2 +1,2 @@
-# eigen
+# Eigen
 Eigen Coding Challenge
