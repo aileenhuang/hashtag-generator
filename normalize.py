@@ -28,5 +28,5 @@ def get_normalized_tokens(fname):
 if __name__ == "__main__":
     file_to_tokens = {}
     for f in TEST_FILES:  # TODO: Make this a little more robust with redundant file handling
-        file_to_tokens[f] = tokens
         tokens = get_normalized_tokens(f)
+        file_to_tokens[f] = tokens
