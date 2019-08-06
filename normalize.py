@@ -20,10 +20,13 @@ def get_normalized_tokens(fname):
         text = f.read().replace("\n", " ")  # Read in and replace newlines with space
         doc = nlp(text)
         tokens = [token.lemma_ for token in doc if not token.is_stop and token.is_alpha]  # Strip stop words, lemmatize, and remove non-alphabetical words
+        # TODO: Handle caps normalization
         return tokens
     return None
 
 
 if __name__ == "__main__":
-    for f in TEST_FILES:
-        get_normalized_tokens("doc1.txt")
+    file_to_tokens = {}
+    for f in TEST_FILES:  # TODO: Make this a little more robust with redundant file handling
+        file_to_tokens[f] = tokens
+        tokens = get_normalized_tokens(f)
