@@ -25,11 +25,17 @@ def get_normalized_tokens(fname):
     """
     Normalizes (lemmatizes) text according to LDA's bag-of-words assumption
     """
-    with open(path.join(path.dirname(__file__), FILES_PATH, fname), "r", encoding="utf-8") as f:
+    with open(
+        path.join(path.dirname(__file__), FILES_PATH, fname), "r", encoding="utf-8"
+    ) as f:
         text = f.read().replace("\n", " ")  # Read in and replace newlines with space
         doc = nlp(text)
-        tokens = [token for token in doc if not token.is_stop and token.is_alpha]  # Strip stop words and remove non-alphabetical words
-        tokens = [token.lemma_.lower() for token in tokens if token.pos_ != "PROPN"]  # Force words that are not proper nouns to be lowercase
+        tokens = [
+            token for token in doc if not token.is_stop and token.is_alpha
+        ]  # Strip stop words and remove non-alphabetical words
+        tokens = [
+            token.lemma_.lower() for token in tokens if token.pos_ != "PROPN"
+        ]  # Force words that are not proper nouns to be lowercase
         return {fname: tokens}
     return None
 
@@ -60,9 +66,10 @@ def generate_topics(np_matrix, all_tokens):
     model.fit(np_matrix)
     topic_word = model.topic_word_
     n_top_words = 8
+
     for i, topic_dist in enumerate(topic_word):
         topic_words = np.array(all_tokens)[np.argsort(topic_dist)][:-n_top_words:-1]
-        print('Topic {}: {}'.format(i, ' '.join(topic_words)))
+        print("Topic {}: {}".format(i, " ".join(topic_words)))
     plt.plot(model.loglikelihoods_)
     plt.show()
 
