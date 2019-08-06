@@ -1,24 +1,29 @@
+import argparse
 import numpy as np
 import pandas as pd
 import pdb
 import simplejson as json
 import spacy
 
+from lda import LDA, datasets
+from multiprocessing.pool import ThreadPool
 from os import path
 
 nlp = spacy.load("en_core_web_sm")
-DOCS_PATH = "test-docs"
+TEST_FILES = ["doc1.txt", "doc2.txt", "doc3.txt", "doc4.txt", "doc5.txt", "doc6.txt"]
+FILES_PATH = "test-docs"
 STOP_WORDS = spacy.lang.en.stop_words.STOP_WORDS
 
-def load_document(fname):
-    with open(path.join(path.dirname(__file__), DOCS_PATH, fname), "r", encoding="utf-8") as file:
-        text = file.read().replace("\n", " ")  # Read in and replace newlines with space
+
+def get_normalized_tokens(fname):
+    with open(path.join(path.dirname(__file__), FILES_PATH, fname), "r", encoding="utf-8") as f:
+        text = f.read().replace("\n", " ")  # Read in and replace newlines with space
         doc = nlp(text)
-        print([chunk for chunk in doc.noun_chunks])
-        tokens = [token.text for token in doc if not token.is_stop]  # Strip stop
-        " ".join(tokens)
-        print(tokens)
+        tokens = [token.lemma_ for token in doc if not token.is_stop and token.is_alpha]  # Strip stop words, lemmatize, and remove non-alphabetical words
+        return tokens
+    return None
 
 
 if __name__ == "__main__":
-    load_document("doc1.txt")
+    for f in TEST_FILES:
+        get_normalized_tokens("doc1.txt")
