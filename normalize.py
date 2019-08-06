@@ -25,8 +25,9 @@ def get_normalized_tokens(fname):
     with open(path.join(path.dirname(__file__), FILES_PATH, fname), "r", encoding="utf-8") as f:
         text = f.read().replace("\n", " ")  # Read in and replace newlines with space
         doc = nlp(text)
-        tokens = [token.lemma_ for token in doc if not token.is_stop and token.is_alpha]  # Strip stop words, lemmatize, and remove non-alphabetical words
-        # TODO: Handle caps normalization
+        tokens = [token for token in doc if not token.is_stop and token.is_alpha]  # Strip stop words and remove non-alphabetical words
+        tokens = [token.lemma_.lower() for token in tokens if token.pos_ != "PROPN"]  # force words that are not proper nouns to be lowercase
+        pdb.set_trace()
         return tokens
     return None
 
