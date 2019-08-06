@@ -2,11 +2,9 @@ import argparse
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import pdb
 import simplejson as json
 import spacy
 
-from collections import Counter
 from lda import LDA
 from multiprocessing.pool import ThreadPool
 from os import path
@@ -27,7 +25,6 @@ def get_normalized_tokens(fname):
         doc = nlp(text)
         tokens = [token for token in doc if not token.is_stop and token.is_alpha]  # Strip stop words and remove non-alphabetical words
         tokens = [token.lemma_.lower() for token in tokens if token.pos_ != "PROPN"]  # force words that are not proper nouns to be lowercase
-        pdb.set_trace()
         return tokens
     return None
 
