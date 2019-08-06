@@ -1,7 +1,10 @@
-import argparse
+"""
+Class for generating topics
+"""
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import pdb
 import simplejson as json
 import spacy
 
@@ -11,6 +14,8 @@ from os import path
 from sklearn.feature_extraction.text import CountVectorizer
 
 nlp = spacy.load("en_core_web_sm")
+
+NUM_THREADS = 6
 TEST_FILES = ["doc1.txt", "doc2.txt", "doc3.txt", "doc4.txt", "doc5.txt", "doc6.txt"]
 FILES_PATH = "test-docs"
 STOP_WORDS = spacy.lang.en.stop_words.STOP_WORDS
@@ -24,8 +29,8 @@ def get_normalized_tokens(fname):
         text = f.read().replace("\n", " ")  # Read in and replace newlines with space
         doc = nlp(text)
         tokens = [token for token in doc if not token.is_stop and token.is_alpha]  # Strip stop words and remove non-alphabetical words
-        tokens = [token.lemma_.lower() for token in tokens if token.pos_ != "PROPN"]  # force words that are not proper nouns to be lowercase
-        return tokens
+        tokens = [token.lemma_.lower() for token in tokens if token.pos_ != "PROPN"]  # Force words that are not proper nouns to be lowercase
+        return {fname: tokens}
     return None
 
 
@@ -40,7 +45,7 @@ def get_document_term_matrix(file_to_tokens):
     """
     vec = CountVectorizer()
     f_list = list(file_to_tokens.keys())
-    X = vec.fit_transform([tokens for f, tokens in file_to_tokens.items()])
+    X = vec.fit_transform([" ".join(tokens) for f, tokens in file_to_tokens.items()])
     df = pd.DataFrame(X.toarray(), columns=vec.get_feature_names())
 
     for i in range(len(f_list)):
@@ -62,15 +67,29 @@ def generate_topics(np_matrix, all_tokens):
     plt.show()
 
 
-def main(files):
+def _map_to_dict(file_to_tokens_list):
     file_to_tokens = {}
-    all_tokens = []
-    for f in files:  # TODO: Make this a little more robust with redundant file handling
-        tokens = get_normalized_tokens(f)
-        all_tokens.extend(tokens)
-        file_to_tokens[f] = " ".join(tokens)
+    for file_to_token in file_to_tokens_list:
+        file_to_tokens.update(file_to_token)
 
+    return file_to_tokens
+
+
+def _get_all_unique_tokens(file_to_tokens):
+    all_tokens = []
+    for f, tokens in file_to_tokens.items():
+        all_tokens.extend(tokens)
     all_tokens = list(set(all_tokens))  # List of unique tokens
+
+    return all_tokens
+
+
+def main(files):
+    with ThreadPool(processes=NUM_THREADS) as pool:
+        file_to_tokens_list = pool.map(get_normalized_tokens, files)
+
+    file_to_tokens = _map_to_dict(file_to_tokens_list)
+    all_tokens = _get_all_unique_tokens(file_to_tokens)
 
     np_matrix = get_document_term_matrix(file_to_tokens)
     generate_topics(np_matrix, all_tokens)
