@@ -2,6 +2,7 @@
 Class for generating topics
 TODO: Handle invalid/corrupt files, redundant file names, multilingual support?
 """
+import gensim
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -109,10 +110,28 @@ class TopicGenerator:
         plt.plot(model.loglikelihoods_)
         plt.show()
 
+    def generate_gensim_topics(self):
+        with ThreadPool(processes=NUM_THREADS) as pool:
+            file_to_tokens_list = pool.map(self._get_normalized_tokens, self.files)
+
+        file_to_tokens = self._map_to_dict(file_to_tokens_list)
+        processed_docs = [tokens for f, tokens in file_to_tokens.items()]
+
+        dictionary = gensim.corpora.Dictionary(processed_docs)
+        bow_corpus = [dictionary.doc2bow(doc) for doc in processed_docs]
+        lda_model = gensim.models.LdaMulticore(bow_corpus,
+                                   num_topics=self.n_topics,
+                                   id2word = dictionary,
+                                   passes=10,
+                                   workers=2)
+
+        for idx, topic in lda_model.print_topics(-1):
+            print("Topic: {}\nWords: {}\n".format(idx, topic))
+
 
 def main(files):
-    tg = TopicGenerator(files, n_topics=10)
-    tg.generate_topics()
+    tg = TopicGenerator(files, n_topics=2)
+    tg.generate_gensim_topics()
 
 if __name__ == "__main__":
     main(TEST_FILES)
