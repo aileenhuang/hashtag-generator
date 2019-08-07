@@ -22,6 +22,7 @@ TEST_FILES = ["doc1.txt", "doc2.txt", "doc3.txt", "doc4.txt", "doc5.txt", "doc6.
 FILES_PATH = "test-docs"
 STOP_WORDS = spacy.lang.en.stop_words.STOP_WORDS
 
+
 class TopicGenerator:
     def __init__(self, files, n_topics=6, n_iter=1500, random_state=1, n_top_words=8):
         self.files = files
@@ -37,7 +38,9 @@ class TopicGenerator:
         with open(
             path.join(path.dirname(__file__), FILES_PATH, fname), "r", encoding="utf-8"
         ) as f:
-            text = f.read().replace("\n", " ")  # Read in and replace newlines with space
+            text = f.read().replace(
+                "\n", " "
+            )  # Read in and replace newlines with space
             doc = nlp(text)
             tokens = [
                 token for token in doc if not token.is_stop and token.is_alpha
@@ -47,7 +50,6 @@ class TopicGenerator:
             ]  # Force words that are not proper nouns to be lowercase
             return {fname: tokens}
         return None
-
 
     def _get_document_term_matrix(self, file_to_tokens):
         """
@@ -60,7 +62,9 @@ class TopicGenerator:
         """
         vec = CountVectorizer()
         f_list = list(file_to_tokens.keys())
-        X = vec.fit_transform([" ".join(tokens) for f, tokens in file_to_tokens.items()])
+        X = vec.fit_transform(
+            [" ".join(tokens) for f, tokens in file_to_tokens.items()]
+        )
         df = pd.DataFrame(X.toarray(), columns=vec.get_feature_names())
 
         for i in range(len(f_list)):
@@ -68,7 +72,6 @@ class TopicGenerator:
 
         np_matrix = df.to_numpy()
         return np_matrix
-
 
     def _map_to_dict(self, file_to_tokens_list):
         file_to_tokens = {}
@@ -94,14 +97,18 @@ class TopicGenerator:
 
         np_matrix = self._get_document_term_matrix(file_to_tokens)
 
-        model = LDA(n_topics=self.n_topics, n_iter=self.n_iter, random_state=self.random_state)
+        model = LDA(
+            n_topics=self.n_topics, n_iter=self.n_iter, random_state=self.random_state
+        )
         model.fit(np_matrix)
 
         doc_topic = model.doc_topic_  # document-topic distributions
         topic_word = model.topic_word_  # topic-word distributions
 
         for i, topic_dist in enumerate(topic_word):
-            topic_words = np.array(all_tokens)[np.argsort(topic_dist)][:-self.n_top_words:-1]
+            topic_words = np.array(all_tokens)[np.argsort(topic_dist)][
+                : -self.n_top_words : -1
+            ]
             print("Topic {}: {}".format(i, " ".join(topic_words)))
 
         for i in range(len(self.files)):
@@ -119,11 +126,13 @@ class TopicGenerator:
 
         dictionary = gensim.corpora.Dictionary(processed_docs)
         bow_corpus = [dictionary.doc2bow(doc) for doc in processed_docs]
-        lda_model = gensim.models.LdaMulticore(bow_corpus,
-                                   num_topics=self.n_topics,
-                                   id2word = dictionary,
-                                   passes=10,
-                                   workers=2)
+        lda_model = gensim.models.LdaMulticore(
+            bow_corpus,
+            num_topics=self.n_topics,
+            id2word=dictionary,
+            passes=10,
+            workers=2,
+        )
 
         for idx, topic in lda_model.print_topics(-1):
             print("Topic: {}\nWords: {}\n".format(idx, topic))
@@ -132,6 +141,7 @@ class TopicGenerator:
 def main(files):
     tg = TopicGenerator(files, n_topics=2)
     tg.generate_gensim_topics()
+
 
 if __name__ == "__main__":
     main(TEST_FILES)
