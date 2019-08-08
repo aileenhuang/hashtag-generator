@@ -13,7 +13,8 @@ Neither is perfect, though the Gensim implementation appears to be a bit more ro
 To run, initialize virtual environment, which will install necessary dependencies.
 
 ```shell
-./init_env.sh```
+$ ./init_env.sh
+```
 
 To launch the app, call `flask run` and navigate to `127.0.0.1:5000` in your preferred browser.
 
