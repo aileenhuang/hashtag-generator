@@ -1,0 +1,15 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Processed Topics</title>
+    </head>
+<body>
+    {% if tg %}
+    <ol>
+        {% for idx, topic in tg.gensim_model.print_topics(-1) %}
+        <li>Topic: {{idx}}, Words: {{topic}}</li>
+        {% endfor %}
+    </ol>
+    {% endif %}
+</body>
+</html>
