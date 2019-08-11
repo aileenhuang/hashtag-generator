@@ -1,5 +1,6 @@
 """A very simple Flask application"""
 
+import simplejson as json
 from os import path
 from flask import Flask, flash, request, redirect, url_for, render_template, send_from_directory
 from .processors.topicgenerator import TopicGenerator
@@ -11,39 +12,50 @@ ALLOWED_EXTENSIONS = {"txt"}
 
 app = Flask(__name__)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 
 
-def is_valid_file(filename):
+def _is_valid_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
-def handle_upload(request):
-    if "file" not in request.files:
+def _handle_upload(request):
+    if not request.files:
         flash("No file in request")
         return request.url
 
-    file = request.files["file"]
-    if not file.filename:
-        flash("No selected file")
-        return request.url
+    file_dict = request.files
+    for file_key, file_data in file_dict.items():
+        if file_key and file_data.filename:
+            if not _is_valid_file(file_data.filename):
+                flash("Invalid file submitted")
+                return request.url
 
-    if file and is_valid_file(file.filename):
-        filename = secure_filename(file.filename)
-        file.save(path.join(app.config["UPLOAD_FOLDER"], filename))
-        return url_for("uploaded_file", filename=filename)
+    filenames_dict = {}  # to be serialized as json
+    for file_key, file_data in file_dict.items():
+        if file_data.filename:
+            if "filenames" not in filenames_dict:
+                filenames_dict["filenames"] = []
+            filename = secure_filename(file_data.filename)
+            filenames_dict["filenames"].append(filename)
+            file_data.save(path.join(app.config["UPLOAD_FOLDER"], filename))
+    filenames_json = json.dumps(filenames_dict)
+
+    return url_for("uploaded_file", filenames_json=filenames_json)
 
 
 @app.route("/", methods=["GET", "POST"])
 def upload_file():
     if request.method == "POST":
-        url = handle_upload(request)
+        url = _handle_upload(request)
         return redirect(url)
     else:
         return render_template("upload.html")
 
-@app.route('/uploads/<filename>')
-def uploaded_file(filename):
-    tg = TopicGenerator([filename])
+@app.route('/uploads/<filenames_json>')
+def uploaded_file(filenames_json):
+    filenames_dict = json.loads(filenames_json)  # deserialize into dict
+    tg = TopicGenerator(filenames_dict["filenames"])
     tg.generate_gensim_topics()
     return render_template("uploaded.html", tg=tg)
