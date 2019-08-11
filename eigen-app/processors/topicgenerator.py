@@ -161,6 +161,7 @@ class TopicGenerator:
 
     def plot_log_likelihoods(self):
         plt.plot(self.lda_model.loglikelihoods_[5:])
+        plt.show()
 
 
 def main(files):
