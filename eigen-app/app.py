@@ -53,7 +53,8 @@ def upload_file():
     else:
         return render_template("upload.html")
 
-@app.route('/uploads/<filenames_json>')
+
+@app.route("/uploads/<filenames_json>")
 def uploaded_file(filenames_json):
     filenames_dict = json.loads(filenames_json)  # deserialize into dict
     tg = TopicGenerator(filenames_dict["filenames"])

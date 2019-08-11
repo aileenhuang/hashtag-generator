@@ -28,7 +28,9 @@ STOP_WORDS = spacy.lang.en.stop_words.STOP_WORDS
 
 
 class TopicGenerator:
-    def __init__(self, files, n_topics=6, n_iter=1500, random_state=1, n_top_words=8, workers=2):
+    def __init__(
+        self, files, n_topics=6, n_iter=1500, random_state=1, n_top_words=8, workers=2
+    ):
         self.files = files
         self.n_topics = n_topics
         self.n_iter = n_iter
