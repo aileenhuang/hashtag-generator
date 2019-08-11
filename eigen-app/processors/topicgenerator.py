@@ -10,8 +10,6 @@ import gensim
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import pdb
-import simplejson as json
 import spacy
 
 from lda import LDA
@@ -161,11 +159,16 @@ class TopicGenerator:
 
         self._gensim_model = model
 
+    def plot_log_likelihoods(self):
+        plt.plot(self.lda_model.loglikelihoods_[5:])
+
 
 def main(files):
+    """Sample code as a demonstration"""
     tg = TopicGenerator(files, n_topics=2)
     tg.generate_gensim_topics()
     tg.generate_topics()
+    tg.plot_log_likelihoods()
 
 
 if __name__ == "__main__":
