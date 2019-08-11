@@ -2,7 +2,7 @@
 
 import simplejson as json
 from os import path
-from flask import Flask, flash, request, redirect, url_for, render_template, send_from_directory
+from flask import Flask, flash, request, redirect, url_for, render_template
 from .processors.topicgenerator import TopicGenerator
 from werkzeug.utils import secure_filename
 
@@ -32,7 +32,7 @@ def _handle_upload(request):
                 flash("Invalid file submitted")
                 return request.url
 
-    filenames_dict = {}  # to be serialized as json
+    filenames_dict = {}  # to be serialized as json and passed in as an URL query param
     for file_key, file_data in file_dict.items():
         if file_data.filename:
             if "filenames" not in filenames_dict:
@@ -57,5 +57,5 @@ def upload_file():
 def uploaded_file(filenames_json):
     filenames_dict = json.loads(filenames_json)  # deserialize into dict
     tg = TopicGenerator(filenames_dict["filenames"])
-    tg.generate_gensim_topics()
+    tg.generate_topics()
     return render_template("uploaded.html", tg=tg)

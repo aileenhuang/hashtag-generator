@@ -6,7 +6,7 @@
 <body>
     {% if tg %}
     <ol>
-        {% for idx, topic in tg.gensim_model.print_topics(-1) %}
+        {% for idx, topic in tg.lda_model.print_topics(-1) %}
         <li>Topic: {{idx}}, Words: {{topic}}</li>
         {% endfor %}
     </ol>
