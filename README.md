@@ -18,10 +18,12 @@ $ ./init_env.sh
 
 To launch the app, call `flask run` and navigate to `127.0.0.1:5000` in your preferred browser.
 
-You can also call the topic generator directly from within the `processors` directory.
+You can also call the topic generator directly from within the `processors` directory and play around with the output.
 
-## TODOs
-* Robust handling of invalid/corrupt files, redundant file names, etc.
+## Things that I should've worked on
+* Robust handling of invalid/corrupt files, redundant file names, generally not sane inputs
 * Multilingual support
 * Phrase-based LDA implementation. Currently working only with unigrams, which is really not so useful. The bag-of-words assumption that LDA rests on is quite limited, unfortunately
-* Cleaning up the Flask app itself so that it's not horrendous
+* Unit and integration tests
+* Subclassing different topic models instead of wrapping everything under one class and creating a metaclass called `TopicModel`
+* Cleaning up the Flask app frontend itself so that it's not hideous
