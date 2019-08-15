@@ -32,3 +32,4 @@ You can also call the topic generator directly from within the `processors` dire
 * Unit and integration tests
 * Subclassing different topic models instead of wrapping everything under one class and creating a metaclass called `TopicModel`
 * Cleaning up the Flask app frontend itself so that it's not hideous
+* Actually populating style.css and index.html
