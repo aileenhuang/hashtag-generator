@@ -17,7 +17,6 @@ from lda import LDA
 from multiprocessing.pool import ThreadPool
 from os import path
 from sklearn.feature_extraction.text import CountVectorizer
-import pdb
 
 nlp = spacy.load("en_core_web_sm")
 
@@ -111,7 +110,6 @@ class TopicGenerator:
         X = vec.fit_transform(
             lemma_vec
         )
-        pdb.set_trace()
 
         df = pd.DataFrame(X.toarray(), columns=vec.get_feature_names())
 
@@ -149,6 +147,7 @@ class TopicGenerator:
             topic_words = np.array(all_lemmas)[np.argsort(topic_dist)][
                 : -self.n_top_words : -1
             ]
+            pdb.set_trace()
             print("Topic {}: {}".format(i, " ".join(topic_words)))
 
         for i in range(len(self.files)):
@@ -157,11 +156,17 @@ class TopicGenerator:
         self._lda_model = model
 
     def generate_gensim_topics(self):
+        """
+        Uses the gensim implementation of LDA.
+        """
+        doc_lemmas = []  # A 2D array of all lemmas of tokens for each doc
         file_to_tokens = self._get_normalized_corpus(self.files)
-        processed_docs = [tokens for f, tokens in file_to_tokens.items()]
+        for f, tokens in file_to_tokens.items():
+            lemmas = [token.lemma_ for token in tokens]
+            doc_lemmas.append(lemmas)
 
-        dictionary = gensim.corpora.Dictionary(processed_docs)
-        bow_corpus = [dictionary.doc2bow(doc) for doc in processed_docs]
+        dictionary = gensim.corpora.Dictionary(doc_lemmas)
+        bow_corpus = [dictionary.doc2bow(lemmas) for lemmas in doc_lemmas]
         model = gensim.models.LdaMulticore(
             bow_corpus,
             num_topics=self.n_topics,
