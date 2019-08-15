@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 """
 Class for generating topics
 TODO:
@@ -16,6 +17,7 @@ from lda import LDA
 from multiprocessing.pool import ThreadPool
 from os import path
 from sklearn.feature_extraction.text import CountVectorizer
+import pdb
 
 nlp = spacy.load("en_core_web_sm")
 
@@ -51,10 +53,18 @@ class TopicGenerator:
             self.generate_gensim_topics()
         return self._gensim_model
 
+    def _map_to_dict(self, file_to_tokens_list):
+        file_to_tokens = {}
+        for file_to_token in file_to_tokens_list:
+            file_to_tokens.update(file_to_token)
+
+        return file_to_tokens
+
     def _get_normalized_tokens(self, fname):
         """
-        Cleans, lemmatizes, and normalizes text for a file.
+        Cleans, lemmatizes, and normalizes text for one particular file.
         """
+        # lemmas_to_word_sents = bidict(lemma)
         with open(
             path.join(path.dirname(__file__), FILES_PATH, fname), "r", encoding="utf-8"
         ) as f:
@@ -65,15 +75,20 @@ class TopicGenerator:
             tokens = [
                 token for token in doc if not token.is_stop and token.is_alpha
             ]  # Strip stop words and remove non-alphabetical words
-            tokens = [
-                token.lemma_.lower() for token in tokens if token.pos_ != "PROPN"
-            ]  # Force words that are not proper nouns to be lowercase
-            return {fname: tokens}
+            return {fname: tokens} 
         return None
 
     def _get_normalized_corpus(self, files):
-        with ThreadPool(processes=NUM_THREADS) as pool:
-            file_to_tokens_list = pool.map(self._get_normalized_tokens, self.files)
+        """
+        Cleans, lemmatizes, and normalizes text for entire corpus passed in.
+        """
+        # with ThreadPool(processes=NUM_THREADS) as pool:
+        #    file_to_tokens_list = pool.map(self._get_normalized_tokens, self.files)
+
+        """Synchronous loop for testing"""
+        file_to_tokens_list = []
+        for fname in files:
+            file_to_tokens_list.append(self._get_normalized_tokens(fname))
 
         file_to_tokens = self._map_to_dict(file_to_tokens_list)
         return file_to_tokens
@@ -88,39 +103,40 @@ class TopicGenerator:
         Cells: Frequencies
         """
         vec = CountVectorizer()
-        f_list = list(file_to_tokens.keys())
+        lemma_vec = []
+        for f, tokens in file_to_tokens.items():
+            lemmas = [token.lemma_ for token in tokens]
+            lemma_vec.append(" ".join(lemmas))
+
         X = vec.fit_transform(
-            [" ".join(tokens) for f, tokens in file_to_tokens.items()]
+            lemma_vec
         )
+        pdb.set_trace()
+
         df = pd.DataFrame(X.toarray(), columns=vec.get_feature_names())
 
+        f_list = list(file_to_tokens.keys())
         for i in range(len(f_list)):
             df = df.rename({i: f_list[i]})  # Reindex rows to file names
 
         np_matrix = df.to_numpy()
         return np_matrix
 
-    def _map_to_dict(self, file_to_tokens_list):
-        file_to_tokens = {}
-        for file_to_token in file_to_tokens_list:
-            file_to_tokens.update(file_to_token)
 
-        return file_to_tokens
-
-    def _get_all_unique_tokens(self, file_to_tokens):
-        all_tokens = []
+    def _get_all_unique_lemmas(self, file_to_tokens):
+        all_lemmas = []
         for f, tokens in file_to_tokens.items():
-            all_tokens.extend(tokens)
-        all_tokens = list(set(all_tokens))  # List of unique tokens
+            lemmas = [token.lemma_ for token in tokens]
+            all_lemmas.extend(lemmas)
+        all_lemmas = list(set(all_lemmas))  # List of unique tokens
 
-        return all_tokens
+        return all_lemmas
 
     def generate_topics(self):
         file_to_tokens = self._get_normalized_corpus(self.files)
-        all_tokens = self._get_all_unique_tokens(file_to_tokens)
+        all_lemmas = self._get_all_unique_lemmas(file_to_tokens)
 
         np_matrix = self._get_document_term_matrix(file_to_tokens)
-
         model = LDA(
             n_topics=self.n_topics, n_iter=self.n_iter, random_state=self.random_state
         )
@@ -130,7 +146,7 @@ class TopicGenerator:
         topic_word = model.topic_word_  # topic-word distributions
 
         for i, topic_dist in enumerate(topic_word):
-            topic_words = np.array(all_tokens)[np.argsort(topic_dist)][
+            topic_words = np.array(all_lemmas)[np.argsort(topic_dist)][
                 : -self.n_top_words : -1
             ]
             print("Topic {}: {}".format(i, " ".join(topic_words)))
@@ -167,7 +183,7 @@ class TopicGenerator:
 def main(files):
     """Sample code as a demonstration"""
     tg = TopicGenerator(files, n_topics=2)
-    tg.generate_gensim_topics()
+    # tg.generate_gensim_topics()
     tg.generate_topics()
     tg.plot_log_likelihoods()
 

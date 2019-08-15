@@ -1,6 +1,7 @@
+bidict
 gensim
+lda
 matplotlib
 pandas
-spacy
-lda
 sklearn
+spacy
