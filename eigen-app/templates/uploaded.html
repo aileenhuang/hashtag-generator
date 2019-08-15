@@ -5,11 +5,20 @@
     </head>
 <body>
     {% if tg %}
-    <ol>
-        {% for idx, topic in tg.gensim_model.print_topics(-1) %}
-        <li>Topic: {{idx}}, Words: {{topic}}</li>
+    <table>
+        <tr>
+            <td>Document</td>
+            <td>Topic</td>
+            <td>Words</td>
+            <td>Sentences</td>
+        </tr>
+        {% for doc, topic in tg.doc_topic_words.items() %}
+        <tr>
+            <td>{{doc}}</td>
+            <td>{{topic}}</td>
+        </tr>
         {% endfor %}
-    </ol>
+    </table>
     {% endif %}
 </body>
 </html>

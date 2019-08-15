@@ -2,6 +2,8 @@
 <title>Eigen Hashtag Generator</title>
 <h1>Upload File</h1>
 <form method=post enctype=multipart/form-data>
-  <input type=file name=file>
-  <input type=submit value=Upload>
+    {% for i in range(6) %}
+    <input type=file name=file{{i}}>
+    {% endfor %}
+    <input type=submit value=Upload>
 </form>
