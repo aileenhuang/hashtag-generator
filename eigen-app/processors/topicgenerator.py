@@ -7,6 +7,7 @@ TODO:
 * Phrase-based LDA implementation?????
 * Clean up user interface
 """
+import csv
 import gensim
 import matplotlib.pyplot as plt
 import numpy as np
@@ -63,7 +64,6 @@ class TopicGenerator:
         """
         Cleans, lemmatizes, and normalizes text for one particular file.
         """
-        # lemmas_to_word_sents = bidict(lemma)
         with open(
             path.join(path.dirname(__file__), FILES_PATH, fname), "r", encoding="utf-8"
         ) as f:
@@ -129,10 +129,9 @@ class TopicGenerator:
         all_lemmas = list(set(all_lemmas))  # List of unique tokens
 
         return all_lemmas
-
+    
     def generate_topics(self):
         file_to_tokens = self._get_normalized_corpus(self.files)
-        all_lemmas = self._get_all_unique_lemmas(file_to_tokens)
 
         np_matrix = self._get_document_term_matrix(file_to_tokens)
         model = LDA(
@@ -140,20 +139,55 @@ class TopicGenerator:
         )
         model.fit(np_matrix)
 
-        doc_topic = model.doc_topic_  # document-topic distributions
-        topic_word = model.topic_word_  # topic-word distributions
-
-        for i, topic_dist in enumerate(topic_word):
-            topic_words = np.array(all_lemmas)[np.argsort(topic_dist)][
-                : -self.n_top_words : -1
-            ]
-            pdb.set_trace()
-            print("Topic {}: {}".format(i, " ".join(topic_words)))
-
-        for i in range(len(self.files)):
-            print("{} Top topic: {}".format(self.files[i], doc_topic[i].argmax()))
-
         self._lda_model = model
+
+    def _get_lemma_to_tokens(self, file_to_tokens):
+        # Map lemmas to tokens for reverse lookup
+        lemma_to_tokens = {}
+        for f, tokens in file_to_tokens.items():
+            for token in tokens:
+                if token.lemma_ not in lemma_to_tokens:
+                    lemma_to_tokens[token.lemma_] = [token]
+                else:
+                    lemma_to_tokens[token.lemma_].append(token)
+        
+        return lemma_to_tokens
+
+    def generate_output(self):
+        """
+        Final output--to be displayed on the app
+        Columns: documents, top topic, n top words for topic, 2 corresponding sentences per word?
+        """
+        file_to_tokens = self._get_normalized_corpus(self.files)
+        all_lemmas = self._get_all_unique_lemmas(file_to_tokens)
+
+        doc_topic = self.lda_model.doc_topic_  # document-topic distributions
+        topic_word = self.lda_model.topic_word_  # topic-word distributions
+
+        # Map lemmas to tokens
+        lemma_to_tokens = self._get_lemma_to_tokens(file_to_tokens)
+
+        # Map topic indices to lemmas
+        topic_lemmas_map = {}
+        for i, topic_dist in enumerate(topic_word):
+            top_lemmas = list(np.array(all_lemmas)[np.argsort(topic_dist)][
+                : -self.n_top_words : -1
+            ])  # list of top lemmas
+            top_lemmas_to_tokens = {}
+            for lemma in top_lemmas:
+                top_tokens = lemma_to_tokens[lemma]  # Grab all tokens corresponding to that lemma
+                top_lemmas_to_tokens[lemma] = top_tokens
+            topic_lemmas_map[i] = top_lemmas_to_tokens
+        
+        # Final output: a map of doc_names to topic number, lemmas assoc. with that topic
+        # and the tokens associated with those words
+        doc_topic_map = {}
+        for i in range(len(self.files)):
+            top_topic = doc_topic[i].argmax()
+            current_file = self.files[i]
+            doc_topic_map[self.files[i]] = {top_topic: topic_lemmas_map[top_topic]}
+
+        return doc_topic_map
 
     def generate_gensim_topics(self):
         """
@@ -187,10 +221,10 @@ class TopicGenerator:
 
 def main(files):
     """Sample code as a demonstration"""
-    tg = TopicGenerator(files, n_topics=2)
-    # tg.generate_gensim_topics()
-    tg.generate_topics()
+    tg = TopicGenerator(files, n_topics=6)
+    doc_topic_map = tg.generate_output()
     tg.plot_log_likelihoods()
+    # tg.generate_gensim_topics()  # Calls gensim model. Uncomment this to compare output!
 
 
 if __name__ == "__main__":
