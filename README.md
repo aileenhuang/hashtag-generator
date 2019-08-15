@@ -16,6 +16,11 @@ To run, initialize virtual environment, which will install necessary dependencie
 $ ./init_env.sh
 ```
 
+After this, to go into the development environment, just run
+```shell
+$ source dev3.7.env
+```
+
 To launch the app, call `flask run` and navigate to `127.0.0.1:5000` in your preferred browser.
 
 You can also call the topic generator directly from within the `processors` directory and play around with the output.
