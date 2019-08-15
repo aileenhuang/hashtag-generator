@@ -1,6 +1,7 @@
 <!doctype html>
 <html>
     <head>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
         <title>Processed Topics</title>
     </head>
 <body>
@@ -9,14 +10,50 @@
         <tr>
             <td>Document</td>
             <td>Topic</td>
-            <td>Words</td>
-            <td>Sentences</td>
         </tr>
-        {% for doc, topic in tg.doc_topic_words.items() %}
+        {% for doc, topic_map in tg.doc_topic_words.items() %}
         <tr>
             <td>{{doc}}</td>
-            <td>{{topic}}</td>
+            {% set top_topic = topic_map.keys()|list %}
+            <td>{{ top_topic[0] }}</td>
         </tr>
+        {% endfor %}
+    </table>
+    <br>
+    <table>
+        <tr>
+            <td>Topic</td>
+            <td>Word</td>
+        </tr>
+        {% for doc, topic_map in tg.doc_topic_words.items() %}
+        {% for topic, word_map in topic_map.items() %}
+        <tr>
+            <td>{{topic}}</td>
+            {% set words = word_map.keys()|list %}
+            <td>{{ words|join(", ") }}</td>
+        </tr>
+        {% endfor %}
+        {% endfor %}
+    </table>
+    <br>
+    <table>
+        <tr>
+            <td>Word</td>
+            <td>Sentences</td>
+        </tr>
+        {% for doc, topic_map in tg.doc_topic_words.items() %}
+        {% for topic, word_map in topic_map.items() %}
+        {% for lemma, tokens in word_map.items() %}
+        <tr>
+            <td>{{lemma}}</td>
+            {% set sents = [] %}
+            {% for token in tokens %}
+            {{sents.append(token.sent)}}
+            {% endfor %}
+            <td>{{ sents|join("\n\n") }}</td>
+        </tr>
+        {% endfor %}
+        {% endfor %}
         {% endfor %}
     </table>
     {% endif %}

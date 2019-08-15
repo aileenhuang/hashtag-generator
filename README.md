@@ -16,14 +16,28 @@ To run, initialize virtual environment, which will install necessary dependencie
 $ ./init_env.sh
 ```
 
+After this, to go into the development environment, just run
+```shell
+$ source dev3.7.env
+```
+
 To launch the app, call `flask run` and navigate to `127.0.0.1:5000` in your preferred browser.
 
 You can also call the topic generator directly from within the `processors` directory and play around with the output.
 
+## Output
+My output is slightly modified from what was described in the coding challenge. Instead of prioritizing words, I prioritize documents and corresponding top topics, and then retrieve lists of top words/sentences based on those top topics.
+
 ## Things that I should've worked on
+### Backend Enhancements
 * Robust handling of invalid/corrupt files, redundant file names, generally not sane inputs
 * Multilingual support
 * Phrase-based LDA implementation. Currently working only with unigrams, which is really not so useful. The bag-of-words assumption that LDA rests on is quite limited, unfortunately
 * Unit and integration tests
-* Subclassing different topic models instead of wrapping everything under one class and creating a metaclass called `TopicModel`
+* Subclassing different topic models instead of wrapping everything under one class. Ideally, I should've created an abstract metaclass called `TopicModel` and made the functions under `TopicGenerator` class methods, subclassed under `TopicModel`. (Under this paradigm, I also should name `TopicGenerator` something like `LDATopicModel` as well.)
+
+### Frontend Problems (because I'm not a web developer)
 * Cleaning up the Flask app frontend itself so that it's not hideous
+* Getting style.css to work
+* Fixing egregious "None None None..." issue displaying on the uploaded.html page
+* On uploads page, dynamically generate new upload buttons instead of having a fixed number of them with some JS
