@@ -1,11 +1,6 @@
 #!/usr/bin/python3
 """
 Class for generating topics
-TODO:
-* Handle invalid/corrupt files, redundant file names
-* Multilingual support
-* Phrase-based LDA implementation?????
-* Clean up user interface
 """
 import csv
 import gensim
@@ -40,6 +35,7 @@ class TopicGenerator:
 
         self._lda_model = None
         self._gensim_model = None
+        self._doc_topic_words = None
 
     @property
     def lda_model(self):
@@ -52,6 +48,12 @@ class TopicGenerator:
         if self._gensim_model is None:
             self.generate_gensim_topics()
         return self._gensim_model
+
+    @property
+    def doc_topic_words(self):
+        if self._doc_topic_words is None:
+            self.generate_output()
+        return self._doc_topic_words
 
     def _map_to_dict(self, file_to_tokens_list):
         file_to_tokens = {}
@@ -74,7 +76,7 @@ class TopicGenerator:
             tokens = [
                 token for token in doc if not token.is_stop and token.is_alpha
             ]  # Strip stop words and remove non-alphabetical words
-            return {fname: tokens} 
+            return {fname: tokens}
         return None
 
     def _get_normalized_corpus(self, files):
@@ -129,7 +131,7 @@ class TopicGenerator:
         all_lemmas = list(set(all_lemmas))  # List of unique tokens
 
         return all_lemmas
-    
+
     def generate_topics(self):
         file_to_tokens = self._get_normalized_corpus(self.files)
 
@@ -150,7 +152,7 @@ class TopicGenerator:
                     lemma_to_tokens[token.lemma_] = [token]
                 else:
                     lemma_to_tokens[token.lemma_].append(token)
-        
+
         return lemma_to_tokens
 
     def generate_output(self):
@@ -178,16 +180,16 @@ class TopicGenerator:
                 top_tokens = lemma_to_tokens[lemma]  # Grab all tokens corresponding to that lemma
                 top_lemmas_to_tokens[lemma] = top_tokens
             topic_lemmas_map[i] = top_lemmas_to_tokens
-        
+
         # Final output: a map of doc_names to topic number, lemmas assoc. with that topic
         # and the tokens associated with those words
-        doc_topic_map = {}
+        doc_topic_words = {}
         for i in range(len(self.files)):
             top_topic = doc_topic[i].argmax()
             current_file = self.files[i]
-            doc_topic_map[self.files[i]] = {top_topic: topic_lemmas_map[top_topic]}
+            doc_topic_words[self.files[i]] = {top_topic: topic_lemmas_map[top_topic]}
 
-        return doc_topic_map
+        self._doc_topic_words = doc_topic_words
 
     def generate_gensim_topics(self):
         """
@@ -222,7 +224,7 @@ class TopicGenerator:
 def main(files):
     """Sample code as a demonstration"""
     tg = TopicGenerator(files, n_topics=6)
-    doc_topic_map = tg.generate_output()
+    tg.generate_output()
     tg.plot_log_likelihoods()
     # tg.generate_gensim_topics()  # Calls gensim model. Uncomment this to compare output!
 

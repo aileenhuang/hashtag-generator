@@ -58,5 +58,6 @@ def upload_file():
 def uploaded_file(filenames_json):
     filenames_dict = json.loads(filenames_json)  # deserialize into dict
     tg = TopicGenerator(filenames_dict["filenames"])
-    tg.generate_topics()
+    tg.generate_output()
+
     return render_template("uploaded.html", tg=tg)
