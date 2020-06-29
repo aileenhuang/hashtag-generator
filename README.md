@@ -1,8 +1,8 @@
-# Eigen Coding Challenge
-This is my submission for the Eigen Coding Challenge. Inside, you'll find the following contents:
+# Hashtags: A hashtag generator that uses Latent Dirichlet Allocation topic modeling
+The goal of this project was to extract keywords and generate hashtags from a corpus of documents. Inside, you'll find the following contents:
 
-1. `eigen-app`, a simple Flask app with a file uploader
-2. `eigen-app/processors/topicgenerator.py`, the backend module that does all the text processing, which can also be called as a script
+1. `hashtags-app`, a simple Flask app with a file uploader
+2. `hashtags-app/processors/topicgenerator.py`, the backend module that does all the text processing, which can also be called as a script
 
 ## `topicgenerator.py`
 The `TopicGenerator` incorporates two implementations of Latent Dirichlet Allocation, one from [Gensim](https://radimrehurek.com/gensim/) and the other from [Ariddell](https://github.com/lda-project/lda/tree/master).
@@ -28,7 +28,7 @@ You can also call the topic generator directly from within the `processors` dire
 ## Output
 My output is slightly modified from what was described in the coding challenge. Instead of prioritizing words, I prioritize documents and corresponding top topics, and then retrieve lists of top words/sentences based on those top topics.
 
-## Things that I should've worked on
+## Things to improve
 ### Backend Enhancements
 * Robust handling of invalid/corrupt files, redundant file names, generally not sane inputs
 * Multilingual support

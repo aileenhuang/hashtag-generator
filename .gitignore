@@ -2,4 +2,4 @@
 *.swp
 *.swo
 venv/**
-eigen-app/uploads/*
+hashtags-app/uploads/*
